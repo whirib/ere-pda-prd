@@ -1,0 +1,509 @@
+{
+  "schema": 1,
+  "auditedAt": "2026-10-06",
+  "textHashNormalization": "UTF-8 text, CRLF converted to LF",
+  "scope": "Fully read files only; repository indexing and partial structural reads are not asserted as full coverage.",
+  "sources": [
+    {
+      "repository": "https://github.com/derrickgong87/product-idea-excavator",
+      "commit": "08aff4088d821096e1702930086c666d56110820",
+      "coverage": "Main SKILL, all 12 references, eval scenarios and license",
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "d6661a2bcc295c971c1fcba151600c9cc47abf860a0bf4200550e6bf7c4a80a2"
+        },
+        {
+          "path": "product-idea-excavator/SKILL.md",
+          "sha256": "b68b20e5c61b3eb603cf314116cf3d54e5bc251ce490b449a92f4b91679cf083"
+        },
+        {
+          "path": "product-idea-excavator/evals/evals.json",
+          "sha256": "fcbd590ef0a32ab6fcf8f1586837753503c9086ec6e32ebe46b6a771c298b417"
+        },
+        {
+          "path": "product-idea-excavator/references/ai-product-playbook.md",
+          "sha256": "ba1c79c68862963e92c8195a90ec8f12f56bba5c1ea9d5168073c2f3e01d7b28"
+        },
+        {
+          "path": "product-idea-excavator/references/discovery-question-bank.md",
+          "sha256": "179c5ea9c6bbd043247ef6c9eec5626e9f286d2eb79312a66752bfac95e4e431"
+        },
+        {
+          "path": "product-idea-excavator/references/en/ai-product-playbook.md",
+          "sha256": "d19b2c2b4655074cff6a734151796399ccb399b1a4d0febe57f80fc0f0dc26e9"
+        },
+        {
+          "path": "product-idea-excavator/references/en/discovery-question-bank.md",
+          "sha256": "110c525d0c3519e636fa888f788f8a784ca379c7a5675aa5c2eb0c59a5cdd548"
+        },
+        {
+          "path": "product-idea-excavator/references/en/example-interviews.md",
+          "sha256": "dd9fb588169f545d601f61d9e55ef333271969bfb1ae104f30e24c46cf343493"
+        },
+        {
+          "path": "product-idea-excavator/references/en/prd-template.md",
+          "sha256": "d336d23c47c79e50bd1702f87f8643b2e243f399bdb3036fe4b69c65860d46a2"
+        },
+        {
+          "path": "product-idea-excavator/references/en/product-sense-playbook.md",
+          "sha256": "b497430704fe3ec3f47cf826d21e1b537b7b383c74edba725d3d532f0860e536"
+        },
+        {
+          "path": "product-idea-excavator/references/en/tech-stack-playbook.md",
+          "sha256": "08f699d4b682862f4e4246fe6b97b51d5a8b4e6474ecc1f22345204d822d1c0c"
+        },
+        {
+          "path": "product-idea-excavator/references/example-interviews.md",
+          "sha256": "15bffeb8f54bd920b8b62a26b5075f6cbc728f6b183f37bf7f66410a1d9ba636"
+        },
+        {
+          "path": "product-idea-excavator/references/prd-template.md",
+          "sha256": "f1603705fc2d4be8d54b1b1d8ff1a9654094ac0ab4b0d49fec821e9726250b79"
+        },
+        {
+          "path": "product-idea-excavator/references/product-sense-playbook.md",
+          "sha256": "92a4220ec458b6cbb824ece130cf98389f260dd958f89b04bee087507816664c"
+        },
+        {
+          "path": "product-idea-excavator/references/tech-stack-playbook.md",
+          "sha256": "bea9f26cbda66c3ff497dc864907da8ef712e6248dd2654c84cbbbb3e9d624b1"
+        }
+      ]
+    },
+    {
+      "repository": "https://github.com/product-on-purpose/pm-skills",
+      "commit": "1cef1a9eae10017389863d51e289e0ae41e17fcb",
+      "coverage": "All 68 skill entrypoints; selected PRD, diagram, critic/orchestrator and actual runtime contract dependencies",
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "e5fe46f4634972731b752114e9992023e95e89e37c11713fdbee92dbc5141e85"
+        },
+        {
+          "path": "agents/pm-critic.md",
+          "sha256": "7ccccf1446d88118256212f4c6239db992b34cfa8704e32bf5fd1877061c87e6"
+        },
+        {
+          "path": "agents/pm-workflow-orchestrator.md",
+          "sha256": "fe979dca3ae94bbfc5d9f3fd5492b4ea0c9d214136e3492124dd066e6ce8cf7b"
+        },
+        {
+          "path": "commands/chain.md",
+          "sha256": "92545bbc4c2b7ccd6d6c468f09e4f8b85f8448f74a1b920afdcfb4b1adebd1dd"
+        },
+        {
+          "path": "hooks/guardrails.mjs",
+          "sha256": "3c147bd9b66fd7280f5a5d24d491e6f63b165c213d7108696cf69df7a69fef75"
+        },
+        {
+          "path": "hooks/lib/local-config.mjs",
+          "sha256": "aeecec2d3f885a70437987d3a42cbbb871f4a953393a1a76f0341412518aa5b4"
+        },
+        {
+          "path": "hooks/phase-router.mjs",
+          "sha256": "4c75416077b086f94fe569fc76b5ff331de6562d81c1d1d1b11843df29c21abe"
+        },
+        {
+          "path": "package.json",
+          "sha256": "d05a7fc18db4a1af3ef2e978af63255a771cbdb1e195238d1ce013e1b4b60e21"
+        },
+        {
+          "path": "scripts/check-delivery-pin.mjs",
+          "sha256": "17f5d2f2ea6658fe053bc0a3429ade238b213287fe4d57f3d5a518db90f32276"
+        },
+        {
+          "path": "scripts/check-memory-contracts.mjs",
+          "sha256": "77ed29d203e4ff79df1f8f4323dde7e83431d7204baffd5eaef84bde6a7de5fe"
+        },
+        {
+          "path": "skills/define-hypothesis/SKILL.md",
+          "sha256": "532e6df9892ed3d5925c95b538ff4107d971893c0a7c2edace6f665870cec0af"
+        },
+        {
+          "path": "skills/define-jtbd-canvas/SKILL.md",
+          "sha256": "acf46fee5842e9042122f2edaf21b0e962b41c5d2b1f5d509fb7a54235384402"
+        },
+        {
+          "path": "skills/define-opportunity-tree/SKILL.md",
+          "sha256": "ebe0be2c0f8a5c93eee593e64b9d7092944bee49548ec7ce2ea342c8761b0735"
+        },
+        {
+          "path": "skills/define-prioritization-framework/SKILL.md",
+          "sha256": "54e539d6e4ab689349109dc5f76839152b640afd4fb840ebf884f1d4abdcaf70"
+        },
+        {
+          "path": "skills/define-problem-statement/SKILL.md",
+          "sha256": "494fbd95caeac81bf3681f0c4598a01cda671757db98c85e5c3f6ba15e65479d"
+        },
+        {
+          "path": "skills/deliver-acceptance-criteria/SKILL.md",
+          "sha256": "b36f3a14c660d261f3e49885b8a993aca4ac0db1649087abe8b0b779694c9e8a"
+        },
+        {
+          "path": "skills/deliver-acceptance-criteria/references/EXAMPLE.md",
+          "sha256": "90532a6db44da6a9459a21c0b9b12d46f27218f61a606c2ca22f6f18cb6b258e"
+        },
+        {
+          "path": "skills/deliver-acceptance-criteria/references/TEMPLATE.md",
+          "sha256": "feba9eee3e40e70240e1129f0ff9dd45de8f8305fb41df0e4b1e013610db8c27"
+        },
+        {
+          "path": "skills/deliver-edge-cases/SKILL.md",
+          "sha256": "36d1f89195972d49e334581c9080f7352f66f451a2507fe7b391c1c4b251962f"
+        },
+        {
+          "path": "skills/deliver-edge-cases/references/EXAMPLE.md",
+          "sha256": "8c2c2f36ec748ce07d4f9fecfc8e8baa27e1b0d3f1d6741e45fdd5b2eedc46ae"
+        },
+        {
+          "path": "skills/deliver-edge-cases/references/TEMPLATE.md",
+          "sha256": "82b8381d6a7312bf4b8be74b6922dfdb75755729e32bfca62acbf6dace107910"
+        },
+        {
+          "path": "skills/deliver-launch-checklist/SKILL.md",
+          "sha256": "12e1baee7add28b64184c46b570869e59d708938d00a7d2f355c54fdae90f059"
+        },
+        {
+          "path": "skills/deliver-prd/SKILL.md",
+          "sha256": "2b48e0af712dafd8c52bb04a437f02e3f965f05bece4f0bdd57452dbb8bad472"
+        },
+        {
+          "path": "skills/deliver-prd/references/EXAMPLE.md",
+          "sha256": "222e0dc71f39d4f9a98b6dd9df8378a1b06d16c0c2237eac8f3156ecd89ad083"
+        },
+        {
+          "path": "skills/deliver-prd/references/TEMPLATE.md",
+          "sha256": "a3873cc28770e403a66e1297c0b8cc1e56c66f45f2c5cbbc628f900825f5ec0a"
+        },
+        {
+          "path": "skills/deliver-release-notes/SKILL.md",
+          "sha256": "63d3337284e8e2e6657f07655d7822f7a8a8cb7578ccf420349d9da23615246f"
+        },
+        {
+          "path": "skills/deliver-user-stories/SKILL.md",
+          "sha256": "d737dbb3c646b9f527a56ee8ad0ea919cf1958e4090bdb40f2f418352982030c"
+        },
+        {
+          "path": "skills/develop-adr/SKILL.md",
+          "sha256": "acab95233131e1cda9c35777de8a24c46c1acf351c394292a84a0ad1ef2e989b"
+        },
+        {
+          "path": "skills/develop-design-rationale/SKILL.md",
+          "sha256": "853395279e4da6fc4fbbb305544be7b28f65cfb7c24f1b6d558ec07610e99f88"
+        },
+        {
+          "path": "skills/develop-solution-brief/SKILL.md",
+          "sha256": "0cb3407abb6f61a8647b2b78718c943e3a8004c6f83fdb362890bbce12c24f10"
+        },
+        {
+          "path": "skills/develop-spike-summary/SKILL.md",
+          "sha256": "1ea0e82f08c02924745877e9aa824f7b64d1e9001423c315103ec587a2606ce4"
+        },
+        {
+          "path": "skills/discover-competitive-analysis/SKILL.md",
+          "sha256": "52cd66c6adaf65468be033fe6e018e1c7641a1f57f25134eb97404158517f51a"
+        },
+        {
+          "path": "skills/discover-interview-synthesis/SKILL.md",
+          "sha256": "2b7918327a1154bab2c7559d33c78129078c421ec3da71ab1260f783878056bf"
+        },
+        {
+          "path": "skills/discover-journey-map/SKILL.md",
+          "sha256": "9795a404438f6fc93975a2528b4c4f4bde9a66a60911d05fa9b673c3510b778d"
+        },
+        {
+          "path": "skills/discover-market-sizing/SKILL.md",
+          "sha256": "2a280410c51bd779bca5ae4a3af1e74f54b8a1087e7b577c218f89122d27f21f"
+        },
+        {
+          "path": "skills/discover-stakeholder-summary/SKILL.md",
+          "sha256": "26273010a18ad491fbde359427440f6742eb0dabe0f938e3ca3b858a83f7a780"
+        },
+        {
+          "path": "skills/foundation-build-risk-review/SKILL.md",
+          "sha256": "c8ac85095fdc23b1c3f7341e14a785d33db4cf02922b3afda3fb71149eb4baa0"
+        },
+        {
+          "path": "skills/foundation-lean-canvas/SKILL.md",
+          "sha256": "f91b74a3ee2894aac9d119314a1b65d72683972174ec1cb57c5d6b4e890f5ec7"
+        },
+        {
+          "path": "skills/foundation-meeting-agenda/SKILL.md",
+          "sha256": "03f82bd0c281126734f182cd61060854ba8f1f3e20f5ce764fa5474545f81f73"
+        },
+        {
+          "path": "skills/foundation-meeting-brief/SKILL.md",
+          "sha256": "df8a47b9b52ae95440dacacdc03d68d54a71687398c9d0d3a4e15163e231e7a0"
+        },
+        {
+          "path": "skills/foundation-meeting-recap/SKILL.md",
+          "sha256": "334e54526f39d6cff3e36bb89e6498337cf5c1f8393c5da5c80cf09383430ccc"
+        },
+        {
+          "path": "skills/foundation-meeting-synthesize/SKILL.md",
+          "sha256": "aa3b57b9abead274e19f0dcc1a62f624a6870f1e29ddd97212c4a45c8c9a8c2f"
+        },
+        {
+          "path": "skills/foundation-okr-writer/SKILL.md",
+          "sha256": "039638446b5fa01e3a3600fc3d2fbba456f4b02ae02000f6d4a13cdea6ac8e5a"
+        },
+        {
+          "path": "skills/foundation-persona/SKILL.md",
+          "sha256": "e11bba6aa2fa9690c30becfad9e2c61ffcf647a89f4f74d855358dd79bdc93c2"
+        },
+        {
+          "path": "skills/foundation-prioritized-action-plan/SKILL.md",
+          "sha256": "1d908c3712f0d2a3f04e28e815cc9645947be95245747539fc8725aaf289c835"
+        },
+        {
+          "path": "skills/foundation-stakeholder-briefings/SKILL.md",
+          "sha256": "b3fb2440eb277960d169dd4d356add8047816584900cf3f9880c969fcd1b3019"
+        },
+        {
+          "path": "skills/foundation-stakeholder-update/SKILL.md",
+          "sha256": "ce252de6de7db7cac7edb3cd2481ce2c647d5d8267e5f4d933924e5c2ee04a53"
+        },
+        {
+          "path": "skills/iterate-lessons-log/SKILL.md",
+          "sha256": "be066e6bcc8c8930344191119f0477d50882d7dcec10db2d5d2d7ee7765d6aff"
+        },
+        {
+          "path": "skills/iterate-pivot-decision/SKILL.md",
+          "sha256": "19b6d94d36fd158d1fa8a2eaf8910ac902da3538732ca10bca1433f484323a1e"
+        },
+        {
+          "path": "skills/iterate-refinement-notes/SKILL.md",
+          "sha256": "45254b71dceb925dce0246413d568dd4861d88dff909645b3a4f7a925a87c4db"
+        },
+        {
+          "path": "skills/iterate-retrospective/SKILL.md",
+          "sha256": "66f5c087ad20d71e2942884313276e97ec5203b89825bb0de14a46211333d634"
+        },
+        {
+          "path": "skills/measure-dashboard-requirements/SKILL.md",
+          "sha256": "750eec4476610386e3b003455900f1fc26d35670b0a250097afc5a47e8703e36"
+        },
+        {
+          "path": "skills/measure-experiment-design/SKILL.md",
+          "sha256": "f6f2f4d84cda845773443e44b30af3c63ac146f1216329b6d78e303782c78122"
+        },
+        {
+          "path": "skills/measure-experiment-results/SKILL.md",
+          "sha256": "b995c63e7f3ef19f2ea696ac914e076c996a9467a78fe4cb872b0faa66c11010"
+        },
+        {
+          "path": "skills/measure-instrumentation-spec/SKILL.md",
+          "sha256": "815de91e0bbabbe3b514c117bb0d6a10e0d1299a1a81a9a81cdfd715459ecfa9"
+        },
+        {
+          "path": "skills/measure-okr-grader/SKILL.md",
+          "sha256": "2318186e01126491dc6edcd72264cb8dcf77f3ab8f9d94ac3f0c2c011bd22059"
+        },
+        {
+          "path": "skills/measure-survey-analysis/SKILL.md",
+          "sha256": "94d677e3cd883f1bbb8b74355d05cc5a6db0c667db5119f7b15081c2c5b13da1"
+        },
+        {
+          "path": "skills/tool-design-sprint-brief/SKILL.md",
+          "sha256": "34dfa2faefe64057adf37e8104b5ac2503f87ae20dd55ab0c616813d522f8f66"
+        },
+        {
+          "path": "skills/tool-design-sprint-decide-and-storyboard/SKILL.md",
+          "sha256": "dd8e64fc802c6c27bf18f717189d6c012c6f4491c4db5174f91bcbaeadd787ed"
+        },
+        {
+          "path": "skills/tool-design-sprint-map-and-target/SKILL.md",
+          "sha256": "31d6673b1d58d772655825e9a4b24b014ec48aceafb0ee1de8460f21133b0065"
+        },
+        {
+          "path": "skills/tool-design-sprint-prototype-plan/SKILL.md",
+          "sha256": "4d387d796ccde1711775bc48ab19b97fe1389621f0de421f43c24b2ae8e6e91f"
+        },
+        {
+          "path": "skills/tool-design-sprint-readiness/SKILL.md",
+          "sha256": "cebf2217477e693b46f9e0c692cf8792aa9e0a38c75ab4ae72e865ce7e5ac1cb"
+        },
+        {
+          "path": "skills/tool-design-sprint-sketch/SKILL.md",
+          "sha256": "9cd1addd7494eaefca0088aeeb981bbd4c4cb70972fffc66aafdd9fc83521adc"
+        },
+        {
+          "path": "skills/tool-design-sprint-test-and-score/SKILL.md",
+          "sha256": "d9daef472076b7bb535b166f35deb99067baf711a534bb09dc2e412a19fc9727"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-approach-options/SKILL.md",
+          "sha256": "342caee3d7ef5424420e5c9476a79acb94d3cdc89820ae258f4d481f57a50337"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-basics/SKILL.md",
+          "sha256": "c5fc06e36f23b90e3460818c976094e5e165217646327aeb88ed34933adf7532"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-brief/SKILL.md",
+          "sha256": "56a56de16b102c936d461cd66e98685907e9362696d66c8497a2457cc2340cb7"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-differentiation/SKILL.md",
+          "sha256": "4296cd98bd4f4122b78677a99e97d4d5e4f3dae1b0123da20034fa98f41228d2"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-founding-hypothesis/SKILL.md",
+          "sha256": "d21fd391731ad5ebc05bc4193de3ecdf7d9c968074311fbcb50708473c749371"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-magic-lenses/SKILL.md",
+          "sha256": "bdb4a08e3c21757b734b8e150b364db4b6653debe4bd1c6e02a45242c803c5e4"
+        },
+        {
+          "path": "skills/tool-foundation-sprint-readiness/SKILL.md",
+          "sha256": "c6c2b41cd80570907c8b13cabbe3338a10b693985989d68ae2bd2290bcf556ef"
+        },
+        {
+          "path": "skills/tool-note-and-vote/SKILL.md",
+          "sha256": "cdece70dbabcdba6726142d968e5d3f371a067bc8ed37d6a0d385f1cf5120da9"
+        },
+        {
+          "path": "skills/utility-mermaid-diagrams/SKILL.md",
+          "sha256": "aeb8d8462f02be1ca2fc474a0b14025fe6d3213c6a2c3d795a6ca29f924b985a"
+        },
+        {
+          "path": "skills/utility-mermaid-diagrams/references/EXAMPLE.md",
+          "sha256": "7b3907bebdfebc13dcd124abcd98041b55614a0916a48bc70b0c9a1cec2d76dc"
+        },
+        {
+          "path": "skills/utility-mermaid-diagrams/references/TEMPLATE.md",
+          "sha256": "b691d3d955aa26f25adb89bf2a6f6f95de89b2cab99f0ab7b5aaa24e162ec603"
+        },
+        {
+          "path": "skills/utility-mermaid-diagrams/references/diagram-catalog.md",
+          "sha256": "2fb7fe8a3c2b697d0ea0ab20b6d2d909aea1827e02e67b7c836a72fcb02407f4"
+        },
+        {
+          "path": "skills/utility-mermaid-diagrams/references/pm-use-cases.md",
+          "sha256": "e6b065b29fc05f5d653f86ef5dc8bb8f8aeea77913bf7b682ed9b374011bc584"
+        },
+        {
+          "path": "skills/utility-mermaid-diagrams/references/syntax-guide.md",
+          "sha256": "c517bacbaeb87292c06387fd69a2e8b463ecb4bd64028af16c52bc9c9ae3c18a"
+        },
+        {
+          "path": "skills/utility-pm-changelog-curator/SKILL.md",
+          "sha256": "7081cd6e123a9be15e3650eb4a6ca569db6cbaefc86d7142bac9edd9b68ebb94"
+        },
+        {
+          "path": "skills/utility-pm-critic/SKILL.md",
+          "sha256": "ed3949dabae39206eaae3663fb2ed54d936b2c718915a927054a589065675366"
+        },
+        {
+          "path": "skills/utility-pm-release-conductor/SKILL.md",
+          "sha256": "aff2c86c2e7ed2de052de2cbb721e228461d75992ee122e7814842e1f19cdc1c"
+        },
+        {
+          "path": "skills/utility-pm-skill-auditor/SKILL.md",
+          "sha256": "92f46deecd15cd27f310e7856b9c527f3cf695ba9f716ecb6ef2643b1e97f83d"
+        },
+        {
+          "path": "skills/utility-pm-skill-builder/SKILL.md",
+          "sha256": "dcf36ec3145c7c95f0ce9d7306b8207f540dab1a377c9f146ce097bad922da22"
+        },
+        {
+          "path": "skills/utility-pm-skill-iterate/SKILL.md",
+          "sha256": "db3bed9f8f80dc8e431fabd685b94e9fcf618a07bc4d9e54870cc5e60b77f343"
+        },
+        {
+          "path": "skills/utility-pm-skill-validate/SKILL.md",
+          "sha256": "6cd809efcef4945c3aa93016580f9fded524e8adf10c788cadd341e1c3e372e8"
+        },
+        {
+          "path": "skills/utility-pm-workflow-builder/SKILL.md",
+          "sha256": "b9a09964a0ece789d7224c1802be47a09b40e75ebadd9d39b8785718088056f5"
+        },
+        {
+          "path": "skills/utility-pm-workflow-orchestrator/SKILL.md",
+          "sha256": "2b13da3a3fae052492292565dc8053604b86186b6e9863876a35a09a71d96537"
+        },
+        {
+          "path": "skills/utility-pm-workflow-orchestrator/references/PARSE-CONTRACT.md",
+          "sha256": "9883b5974f4296301b543e688dcfcea1b5cd7eee5e662a15824e6d3eeadb0967"
+        },
+        {
+          "path": "skills/utility-slideshow-creator/SKILL.md",
+          "sha256": "1ca74340d15e1aa8b1b83bf86ed5d9e578e6d38a99b18f86fe6227118629fa60"
+        },
+        {
+          "path": "skills/utility-update-pm-skills/SKILL.md",
+          "sha256": "d33314918ce0f9cea3a90ed829abb393dad0fcf661e960eda6731692f530ddc5"
+        }
+      ]
+    },
+    {
+      "repository": "https://github.com/betseyliu/prd-debate",
+      "commit": "51199eba17e6837bb06683686b4c1031a05bf78a",
+      "coverage": "Main SKILL, all 12 references, install script and license",
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "eb2e39396a42dc16f503e143e322daffc2d67dc04d5e3d6e0a9264300b8c75cc"
+        },
+        {
+          "path": "SKILL.md",
+          "sha256": "5f6760a61fd4729a7b2a9c6314de55f5ec2a3a5bd400f0d6af86c3ac8f1e0774"
+        },
+        {
+          "path": "install.sh",
+          "sha256": "14d2d4b862026576f6d78be28137743701aa868bc7c42f4257a9f02ebc484754"
+        },
+        {
+          "path": "references/backtracking-algorithm.md",
+          "sha256": "01301403a9cb61644f02260b87f86cd3025e0104ab062949cd3cfe115297a188"
+        },
+        {
+          "path": "references/codebase-research.md",
+          "sha256": "e5f51f7707ba7d36a4e2898aceb5e82b563752d30881bea2d9f879e532909a96"
+        },
+        {
+          "path": "references/context-management.md",
+          "sha256": "a20930d373aac0623343f097aa63fc44188f148e71e6e9064823c871caa97ac1"
+        },
+        {
+          "path": "references/framework-design.md",
+          "sha256": "fd9e711dda0624bfd5265c4696ff3b9317f85b4822f8dc2fa9b6dd86a879afcc"
+        },
+        {
+          "path": "references/intent-clarification.md",
+          "sha256": "ca6fa604f7e379eee2218436299bb949d5c543e7035476597fceccf6415604ae"
+        },
+        {
+          "path": "references/phase-progression.md",
+          "sha256": "25648de2abbc8beb678eb6055ec9a935dda16ca1897a653a23251773fc0ca08c"
+        },
+        {
+          "path": "references/prd-template.md",
+          "sha256": "dfab6772b8708854866318901deaa9b4124b3ba3bea07dedc02c424125087aa1"
+        },
+        {
+          "path": "references/proposer-decomposition.md",
+          "sha256": "e85c6f7ad690cf5d56d0a3d3953f367eca09dba0c42227e426ce7ec4bad6bd7d"
+        },
+        {
+          "path": "references/proposer-protocol.md",
+          "sha256": "7439bdfe7cd91b401f95786afe9a0d43ccdc99628c735729509a25a3a4134ee0"
+        },
+        {
+          "path": "references/reviewer-decomposition.md",
+          "sha256": "3c742c16cf80d91f3fb9e62a66dedca0ff320006e8463c359691d2a419f67180"
+        },
+        {
+          "path": "references/reviewer-protocol.md",
+          "sha256": "4359bb09705a3f9c9d2efcf12fb7bc7119074abbe77ed8e32011c5498ba43d80"
+        },
+        {
+          "path": "references/session-recovery.md",
+          "sha256": "6f10be5f111cba777fd090c78360812f5976caa547c0b5380785bfcc5ddc0723"
+        }
+      ]
+    }
+  ]
+}

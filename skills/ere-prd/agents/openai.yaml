@@ -1,0 +1,4 @@
+interface:
+  display_name: "中文 PRD：访谈、方案与独立评审"
+  short_description: "结合文档和需求访谈生成清楚的中文 PRD，按需配图、独立冷读，并检查研发交付条件。"
+  default_prompt: "使用 $ere-prd，结合我提供的资料挖掘需求，产出清楚简洁的中文 PRD 并做独立冷读评审。"

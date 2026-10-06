@@ -1,0 +1,14 @@
+{
+  "name": "ere-pda-prd",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "中文 PRD skill 与可追溯、可恢复、隔离评审的工程 harness",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check-package.mjs",
+    "demo": "node examples/run-demo.mjs"
+  },
+  "license": "Apache-2.0"
+}
