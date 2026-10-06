@@ -8,7 +8,9 @@
 
 把 [skills/ere-prd](skills/ere-prd) 整个文件夹放到当前 agent 支持的 skill 目录，或让 agent 直接读取其中的 [SKILL.md](skills/ere-prd/SKILL.md)。请保留 scripts、references、agents 和许可证；只复制 SKILL.md 会丢失 harness。仓库不自动改动你的全局配置。
 
-在支持 Codex skill 的环境中，可以这样说：
+在支持 Codex skill 的环境中，默认允许自动调用：用户提到“写需求”“PRD”（大小写均可）或“整理思路”即触发，同义表达如“整理需求”“梳理想法”也适用。无需显式指定 skill，也无需先准备需求文档。只要求整理思路时先产出清晰思路与待决问题，按请求决定是否继续完整 PRD 流程。
+
+也可以显式调用：
 
 > 使用 $ere-prd。把我提供的文档与访谈共同考虑，先找影响方向的关键缺口，再形成简洁清楚的中文 PRD；需要图时实际生成并查看，用当前 agent 的新上下文独立评审。
 
