@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { initRun, applyEvent, inspectRun } from './lib/harness.mjs';
 import { loadState } from './lib/store.mjs';
 import { RUBRICS } from './lib/gates.mjs';
@@ -28,7 +27,8 @@ export function main(argv = process.argv.slice(2)) {
   }
   throw new Error(`未知命令 ${command}。`);
 }
-if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+// Resolve both sides because installed skills can be reached through a symlink or Windows junction.
+if (process.argv[1] && fs.existsSync(process.argv[1]) && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try { const result = await main(); process.stdout.write(`${JSON.stringify(result, null, 2)}\n`); if (result.ok === false) process.exitCode = 2; }
   catch (error) { process.stderr.write(`${JSON.stringify({ error: error.code ?? 'ERROR', message: error.message })}\n`); process.exitCode = 1; }
 }

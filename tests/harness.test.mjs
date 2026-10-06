@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { initRun, applyEvent, inspectRun } from '../skills/ere-prd/scripts/lib/harness.mjs';
 import { loadState, hash, inside } from '../skills/ere-prd/scripts/lib/store.mjs';
 import { check, semanticIssues } from '../skills/ere-prd/scripts/lib/gates.mjs';
@@ -18,6 +20,29 @@ const expectCode = (fn, code) => assert.throws(fn, e => e.code === code);
 const has = (s, stage, code) => assert.ok(check(s, stage).issues.some(x => x.code === code), JSON.stringify(check(s, stage)));
 function reviewed(root, findings = []) { buildToReview(root); const p = prepare(root); send(root, { type: 'review-result', result: mockResult(root, p, findings) }); advance(root); return p; }
 const finding = { id: 'F1', kind: 'question', severity: 'blocker', quote: '保存失败保留输入，允许重试', issue: '离开页面是否保留输入未说明', impact: '不同实现导致丢失行为不一致', suggestion: '明确页面内或跨页面的保留边界' };
+
+test('通过链接目录安装的 CLI 可以执行命令，导入时不会误启动', t => {
+  const root = tmp(t), skill = fileURLToPath(new URL('../skills/ere-prd/', import.meta.url));
+  const entry = path.join(root, 'linked-skill');
+  fs.symlinkSync(skill, entry, process.platform === 'win32' ? 'junction' : 'dir');
+  const cli = path.join(entry, 'scripts/prd.mjs');
+  for (const flags of [[], ['--preserve-symlinks-main']]) {
+    const result = spawnSync(process.execPath, [...flags, cli, 'help'], { encoding: 'utf8', windowsHide: true });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(JSON.parse(result.stdout).commands.includes('status <run-dir>'));
+  }
+  const config = path.join(root, 'config.json'), run = path.join(root, 'run');
+  fs.writeFileSync(config, JSON.stringify({ title: '链接安装任务', host: { runtimeId: 'test-host', authorSessionId: 'test-author' } }));
+  const initialized = spawnSync(process.execPath, [cli, 'init', run, config], { encoding: 'utf8', windowsHide: true });
+  assert.equal(initialized.status, 0, initialized.stderr);
+  assert.equal(JSON.parse(initialized.stdout).title, '链接安装任务');
+  assert.equal(loadState(run).stage, 'intake');
+  const imported = spawnSync(process.execPath, ['--input-type=module', '-e', 'await import(process.env.ERE_PRD_TEST_MODULE)', 'nonexistent-entry'], {
+    encoding: 'utf8', windowsHide: true, env: { ...process.env, ERE_PRD_TEST_MODULE: new URL('../skills/ere-prd/scripts/prd.mjs', import.meta.url).href }
+  });
+  assert.equal(imported.status, 0, imported.stderr);
+  assert.equal(imported.stdout, '');
+});
 
 test('完整中文资料、需求、图、冷读回执和交付流程可恢复完成', t => {
   const root = tmp(t); reviewed(root);
