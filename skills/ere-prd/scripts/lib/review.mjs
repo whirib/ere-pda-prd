@@ -26,7 +26,10 @@ export function packetFor(s, evidenceClaimIds = []) {
   if (round > 1) {
     for (const prior of s.reviews.at(-1)?.findings ?? []) {
       const decision = s.decisions.find(x => x.findingId === prior.id);
-      if (!decision) continue;
+      need(decision, 'REVIEW_RESPONSE_MISSING', `复审前需逐条回应上一轮意见 ${prior.id}；隔离未验证不妨碍回应，但不能因此放行交付。`);
+      need(['accepted', 'rebutted', 'deferred', 'user_decision'].includes(decision.action) && textValue(decision.reason), 'REVIEW_RESPONSE_FORMAT', '复审回复需有效处置及具体理由。');
+      if (decision.action === 'accepted') need(textValue(decision.quote) && s.draft.text.includes(decision.quote), 'FIX_NOT_IN_PRD', '复审前需将已接受的修改落实到当前 PRD，并引用实际片段。');
+      if (decision.action === 'rebutted') need(Array.isArray(decision.claimIds) && decision.claimIds.length > 0 && decision.claimIds.every(id => s.artifacts.intake?.claims.some(c => c.id === id)), 'UNSUPPORTED_REBUTTAL', '复审反驳需当前资料中的可追溯依据。');
       const routed = { findingId: prior.id, quote: prior.quote, issue: prior.issue, impact: prior.impact, suggestion: prior.suggestion,
         response: { action: decision.action, reason: decision.reason, quote: decision.quote ?? '', claimIds: decision.claimIds ?? [] } };
       routedIssues.push(routed);

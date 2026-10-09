@@ -45,6 +45,8 @@ run-dir 同样建议使用绝对路径。调用脚本可以放在任何任务目
 
 `source.kind` 表示证据渠道：`document` 或 `interview`；不限制文档格式/公司/reader。访谈消息同样登记 source。`id` 用 1–80 位字母/数字/下划线/连字符；ID 稳定，版本更新复用 ID。单元可以是页、节、表、图、批注、修订、附件。未读单元用 `read:false,text:""`，不得冒充抽取成功。reader 改变、位置改变或内容改变都会更新来源哈希。
 
+用户消息添加 `actor:"user"`，模型建议使用 `actor:"agent"`，不能伪装成用户来源。实际有权决定需求的文档才添加 `authority:"decision"`，普通参考资料使用 reference 或省略。`registeredRevision` 由脚本记录，调用方不能用它预填回答顺序。详见 [采访与决策依赖契约](interview.md)。
+
 ## 阶段产物
 
 提交方式统一为：
@@ -58,13 +60,13 @@ run-dir 同样建议使用绝对路径。调用脚本可以放在任何任务目
 | 产物 | 字段与规则 |
 |---|---|
 | intake | `coverage[]` 按 source 与 units 覆盖；disposition 为 used/irrelevant/unread；后两种要 reason，unread 默认是相关缺口，明确 material:false 才可非阻断。`claims[]` 含 id/kind/text；fact 需 evidence；assumption/proposal 需 reason/validation；已确认承诺标 commitment:true。`conflicts[]` 含 id/material/status/claimIds；resolved 需 resolution/resolutionClaimIds。 |
-| discovery | `core` 包含 user/problem/goal/scope/flow/constraints；每项 status（sufficient/provisional/critical_gap）、summary、claimIds；provisional 需 validation。`demandAssessment` 写实际证据强弱。`questions[]` 含 id/question/materialImpact/attempts/status/newEvidence；deferred 还要 validation/impact。不同答案会改变方向的缺口不能靠标为 deferred 越过。 |
-| solution | valueLoop、claimIds、inScope[]、nonGoals[]、choice、tradeoff；alternatives[] 至少包含推荐路径及一条真实可选路径，每项 description/fit/costOrRisk。不能机械制造毫无价值的替代项。 |
+| discovery | `core` 包含 user/problem/goal/scope/flow/constraints；每项 status（sufficient/provisional/critical_gap）、summary、claimIds、decisionIds；decisionIds 关联覆盖该维度的采访节点。provisional 需 validation 与 uncertaintyType（research/implementation/decision）。`demandAssessment` 写实际证据强弱。questions 为可选对照记录，answered/deferred 必须对应账本中的真实 resolution；手写这些标签不解决待答。 |
+| solution | valueLoop、claimIds、inScope[]、nonGoals[]、choice、choiceDecisionId、tradeoff；choice 与 choiceDecisionId 指向的 answered 决策值一致。alternatives[] 至少包含推荐路径及一条真实可选路径，每项 description/fit/costOrRisk。推荐不能自动成为选定方案。 |
 | specification | mainFlow、requirements[]、edgeAssessment[]、handoff、openItems[]；下文列出需求格式。关键未决项写进 PRD，不藏在状态文件中。 |
 | visuals | decisions[]：id/purpose/choice/reason；choice 为 diagram/list/table/none；diagram 需实际渲染和 qa.readable/consistent=true、qa.evidence 记录实际查看所得。没有配图需要可用空 decisions，但语义判断仍解释选择。 |
 | resolve | commitments[]：claimId/status:"preserved"/quote；quote 引用当前 PRD 中保留承诺的片段。处置意见另用 decision 事件。 |
 
-discovery 的六项判断适用 [访谈标准](quality.md)，不是必须证明有市场需求才能写草稿。已经从文档取得答案无需再问一遍。
+discovery 的六项判断适用 [访谈标准](quality.md)及 [采访账本](interview.md)。不强制证明市场需求，但重要选择必须有依据，用户未答不能推进。已经从完整明确材料取得的答案可复用，不凑问题数量。先呈现总结并记录共同理解；只有完整材料与明确按材料执行授权才适用 provided-input。
 
 `requirements[]` 每项：
 
@@ -96,7 +98,7 @@ specification 提交后登记 PRD：
 
 PRD 是人读的主产物，结构化记录是追溯和检查依据。mapping 不是章节标题映射；需要实际行为原文。draft 与当前 sources/specification 绑定，即使文本不变、依据变了也要重新登记。
 
-discovery/solution 尚有关键缺口时，可以提交 draft 事件并明确 `exploratory:true,mapping:[]`，把选择分支、未决问题及影响写进正文，再 draft-export。当前阶段不推进，探索稿不满足 specification，也不能正式 export。之后明确方案、完成需求产物，再重新登记不带 exploratory 的正式稿。不要为了能交出草稿把 critical_gap 改成 sufficient。
+discovery/solution 尚有关键缺口时，只有用户明确要求先看探索稿，引用原话登记 interview-draft-authorize 后，才可以提交 `exploratory:true,mapping:[]` 的 draft，把选择分支、未决问题及影响写进正文，再 draft-export。当前阶段不推进，探索稿不满足 specification，也不能正式 export。不要为了能交稿把 critical_gap 改成 sufficient、把未答改为 deferred 或复用初始“最终给我 PRD”作为探索授权。
 
 图表使用 `{"type":"render","revision":11,"spec":{...}}`；数据契约见 [visuals.md](visuals.md)。外部工具使用 attach-diagram，diagram 含 id/caption/purpose/file/sourceFile/hash/sourceHash；路径在 run 内，实际 SVG/PNG 与可编辑源文件哈希一致。每个需要的图必须登记对应 decision。
 
@@ -113,9 +115,10 @@ discovery/solution 尚有关键缺口时，可以提交 draft 事件并明确 `e
 | 事件 | 必需字段与行为 |
 |---|---|
 | prepare-review | review/resolve 阶段；首轮 evidenceClaimIds 为空；复审只选与具体回应相关的 claim。返回封存 packetFile。 |
+| interview-* | plan、ask、resolve、summary、confirm、draft-authorize、resume 约束真实回答与依赖顺序；事件及格式见 interview.md。 |
 | review-result | result 包含请求版本、宿主回执与独立 report，见 [review.md](review.md)。首轮不能覆盖。 |
 | review-failed | requestId/reason；失败消耗调用预算，可在剩余预算内另建请求。 |
-| decision | decision：findingId（如 R1-F1）/action/reason；accepted 需当前 PRD quote；rebutted 需 claimIds；deferred/user_decision 的 blocker 仍阻断。 |
+| decision | review/resolve 阶段；decision：findingId（如 R1-F1）/action/reason；accepted 需当前 PRD quote；rebutted 需 claimIds；上一轮逐条回应后才可复审；deferred/user_decision 的 blocker 仍阻断。 |
 | export | export 阶段；target 可省略，默认本地；若指定目标，见 [extensions.md](extensions.md)。 |
 | publish-receipt | receipt 来自真实目标写入操作；检查既有 docId、baseVersion、operationId、附件与远端引用。 |
 | draft-export | 当前来源对应的 PRD 可随时导出；草稿注明缺口，不推进、不覆盖正式 delivery。 |

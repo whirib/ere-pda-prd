@@ -7,8 +7,8 @@ import { RUBRICS, basis } from '../skills/ere-prd/scripts/lib/gates.mjs';
 // Fictional raw materials for tests and the offline demo. No research or live
 // independent model review is implied by this fixture's successful run.
 export const raw = {
-  document: { id: 'D1', kind: 'document', title: '需求提交改进 brief（虚构）', locator: 'fixture://brief', version: '1', reader: 'text-reader', units: [{ id: 'body', locator: '全文', text: '员工在内部需求页面填写标题和描述并提交申请。本期只支持员工提交需求，不包含自动审批。信息完整时进入待处理；信息不完整时返回补充。保存失败保留输入，允许重试；重复点击不得产生两份记录。只有登录员工可以提交。' }] },
-  interview: { id: 'I1', kind: 'interview', title: 'PM 访谈（虚构）', locator: 'fixture://interview', version: '1', reader: 'host-message', units: [{ id: 'turn1', locator: '访谈第 1 轮', text: '现在员工在群里发需求，PM 经常需要再问一次内容。希望提交后能清楚看到是否已进入待处理。成功标准是员工完成一次提交后能确认需求已收到，失败时知道如何继续。暂无量化基线，先观察提交任务完成情况。' }] }
+  document: { id: 'D1', kind: 'document', authority: 'decision', title: '需求提交改进 brief（虚构）', locator: 'fixture://brief', version: '1', reader: 'text-reader', units: [{ id: 'body', locator: '全文', text: '员工在内部需求页面填写标题和描述并提交申请。本期只支持员工提交需求，不包含自动审批。信息完整时进入待处理；信息不完整时返回补充。保存失败保留输入，允许重试；重复点击不得产生两份记录。只有登录员工可以提交。' }] },
+  interview: { id: 'I1', kind: 'interview', actor: 'user', title: 'PM 访谈（虚构）', locator: 'fixture://interview', version: '1', reader: 'host-message', units: [{ id: 'turn1', locator: '访谈第 1 轮', text: '现在员工在群里发需求，PM 经常需要再问一次内容。希望提交后能清楚看到是否已进入待处理。成功标准是员工完成一次提交后能确认需求已收到，失败时知道如何继续。暂无量化基线，先观察提交任务完成情况。方案为结构化页面提交。请按这份已确认材料形成 PRD，不新增关键交互决定。若后续发现材料有缺口，先给我列明分支的探索稿。' }] }
 };
 export const prd = `# 内部需求提交 PRD（虚构示例）
 
@@ -67,14 +67,14 @@ export function intakeArtifact(s) {
       { id: 'C-goal', kind: 'fact', text: raw.interview.units[0].text, evidence: evidence('I1', raw.interview.units[0].text) }], conflicts: [] };
 }
 export const discovery = { core: {
-  user: { status: 'sufficient', summary: '登录员工在内部需求页提交申请', claimIds: ['C-user'] },
-  problem: { status: 'sufficient', summary: '群聊需求内容不完整，PM 经常重复补问', claimIds: ['C-goal'] },
-  goal: { status: 'sufficient', summary: '完成后明确需求已收到，失败时知道怎样继续；基线暂未测量', claimIds: ['C-goal'] },
-  scope: { status: 'sufficient', summary: '只提交需求，不自动审批', claimIds: ['C-scope'] },
-  flow: { status: 'sufficient', summary: '填写、完整性检查、待处理/补充、失败重试', claimIds: ['C-flow', 'C-guard'] },
-  constraints: { status: 'sufficient', summary: '登录员工；保存失败不丢输入、重复点击不重复创建', claimIds: ['C-user', 'C-guard'] }
+  user: { status: 'sufficient', summary: '登录员工在内部需求页提交申请', claimIds: ['C-user'], decisionIds: ['D-user'] },
+  problem: { status: 'sufficient', summary: '群聊需求内容不完整，PM 经常重复补问', claimIds: ['C-goal'], decisionIds: ['D-problem'] },
+  goal: { status: 'sufficient', summary: '完成后明确需求已收到，失败时知道怎样继续；基线暂未测量', claimIds: ['C-goal'], decisionIds: ['D-goal'] },
+  scope: { status: 'sufficient', summary: '只提交需求，不自动审批', claimIds: ['C-scope'], decisionIds: ['D-scope'] },
+  flow: { status: 'sufficient', summary: '填写、完整性检查、待处理/补充、失败重试', claimIds: ['C-flow', 'C-guard'], decisionIds: ['D-flow'] },
+  constraints: { status: 'sufficient', summary: '登录员工；保存失败不丢输入、重复点击不重复创建', claimIds: ['C-user', 'C-guard'], decisionIds: ['D-constraints'] }
 }, demandAssessment: '业务 brief 明确要求，访谈提供当前流程；没有虚构付费或真实用户观察证据。', questions: [] };
-export const solution = { valueLoop: '员工一次提交后知道需求已收到；失败保留输入继续完成', claimIds: ['C-user', 'C-goal', 'C-scope'], inScope: ['填写和完整性提示', '保存结果和重试'], nonGoals: ['自动审批'], choice: '结构化页面提交', tradeoff: '增加填写步骤以减少重复追问；暂不建设审批系统', alternatives: [
+export const solution = { valueLoop: '员工一次提交后知道需求已收到；失败保留输入继续完成', claimIds: ['C-user', 'C-goal', 'C-scope'], inScope: ['填写和完整性提示', '保存结果和重试'], nonGoals: ['自动审批'], choice: '结构化页面提交', choiceDecisionId: 'D-solution', tradeoff: '增加填写步骤以减少重复追问；暂不建设审批系统', alternatives: [
   { description: '继续群聊加固定消息模板', fit: '低频且由 PM 人工补齐', costOrRisk: '易遗漏状态，仍需反复追问' },
   { description: '结构化页面提交', fit: '员工需明确提交状态', costOrRisk: '需要接入已有登录和保存能力' }
 ] };
@@ -88,10 +88,25 @@ export const specification = { mainFlow: '填写需求 → 提交申请 → 信�
     { category: '并发和依赖失败', applicable: true, reason: '重复点击和保存失败影响闭环', requirementIds: ['FR-02'] }],
   handoff: { applicable: true, reason: '交给不熟悉访谈的研发执行', authority: '本文行为及范围；已有接口文档数据协议', conflictRule: '冲突先由产品与平台负责人确定', boundaries: '不修改既有登录机制，平台负责', stopConditions: '权限、数据保存或接口冲突', owner: '产品负责人和平台负责人' }, openItems: [] };
 
+export function setupInterview(root) {
+  const nodes = ['user', 'problem', 'goal', 'scope', 'flow', 'constraints'].map(key => ({ id: `D-${key}`, topic: `材料中的 ${key}`, kind: key === 'scope' ? 'decision' : 'fact', coreKeys: [key], material: true, dependsOn: [], why: '核对完整材料中的明确范围与行为，不能从模型建议推断' }));
+  nodes.push({ id: 'D-solution', topic: '明确方案', kind: 'decision', coreKeys: ['flow'], material: true, dependsOn: ['D-scope'], why: '确保选择已由材料明确而不是作者代选' });
+  send(root, { type: 'interview-plan', nodes });
+  const values = { user: '登录员工', problem: '群聊中重复补问', goal: '提交后确认已收到', scope: '本期只支持员工提交需求，不包含自动审批。', flow: '完整保存，不完整补充；失败保留输入重试', constraints: '登录、保存、去重', solution: '结构化页面提交' };
+  const ref = (id, quote) => ({ sourceId: id, sourceHash: loadState(root).sources[id].hash, unitId: id === 'D1' ? 'body' : 'turn1', quote });
+  for (const key of ['user','problem','goal','scope','flow','constraints','solution']) {
+    const src = ['problem','goal','solution'].includes(key) ? 'I1' : 'D1';
+    send(root, { type: 'interview-resolve', decisionId: `D-${key}`, status: 'answered', value: values[key], reason: '离线虚构材料中已有明确依据，无新用户选择', evidence: [ref(src, loadState(root).sources[src].units[0].text)] });
+  }
+  const summary = send(root, { type: 'interview-summary', text: '登录员工以结构化页面提交需求，完整则待处理，失败保留输入重试；不做审批，基线未实测。' }).result;
+  send(root, { type: 'interview-confirm', summaryHash: summary.summaryHash, mode: 'provided-input', evidence: [ref('I1','请按这份已确认材料形成 PRD，不新增关键交互决定。')] });
+}
+
 export function buildToReview(root) {
   initRun(root, { title: '内部需求提交（离线虚构示例）', host: { runtimeId: 'fixture-host', model: 'fixture-model', authorSessionId: 'fixture-author' } });
   for (const source of Object.values(raw)) send(root, { type: 'source', source });
   send(root, { type: 'artifact', stage: 'intake', data: intakeArtifact(loadState(root)) }); advance(root);
+  setupInterview(root);
   send(root, { type: 'artifact', stage: 'discovery', data: discovery }); advance(root);
   send(root, { type: 'artifact', stage: 'solution', data: solution }); advance(root);
   send(root, { type: 'artifact', stage: 'specification', data: specification }); send(root, { type: 'draft', text: prd, mapping }); advance(root);

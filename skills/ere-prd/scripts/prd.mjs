@@ -5,12 +5,13 @@ import { initRun, applyEvent, inspectRun } from './lib/harness.mjs';
 import { loadState } from './lib/store.mjs';
 import { RUBRICS } from './lib/gates.mjs';
 import { executeBridge } from './lib/bridge.mjs';
+import { interviewStatus, interviewBasis } from './lib/interview.mjs';
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
 
 export function main(argv = process.argv.slice(2)) {
   const [command, root, input] = argv;
-  if (command === 'help' || !command) return { commands: ['init <run-dir> <config.json>', 'status <run-dir>', 'check <run-dir> [stage]', 'apply <run-dir> <event.json>', 'quality-template <run-dir>'],
-    note: '不自动调用付费模型。主 agent 执行采访和写作；harness 验证资料、版本、阶段、隔离回执和交付。桥接执行：run-review <run-dir> <adapter.json>，配置含 revision。' };
+  if (command === 'help' || !command) return { commands: ['init <run-dir> <config.json>', 'status <run-dir>', 'interview-status <run-dir>', 'check <run-dir> [stage]', 'apply <run-dir> <event.json>', 'quality-template <run-dir>'],
+    note: '主 agent 查证事实、采访和写作。采访事件约束实际回答与依赖顺序；待答问题不自动延期，provisional 不替代用户决定。代码不认证人类身份或证明产品判断正确。桥接执行：run-review <run-dir> <adapter.json>。' };
   if (!root) throw new Error('缺少 run 目录。');
   if (command === 'init') return initRun(root, readJson(input));
   if (command === 'status') {
@@ -19,6 +20,11 @@ export function main(argv = process.argv.slice(2)) {
       prdHash: s.draft?.hash ?? null, gates: Object.keys(s.gates), reviewRounds: s.reviews.length, reviewCalls: s.reviewRequests.length, report: inspectRun(root) };
   }
   if (command === 'check') return inspectRun(root, input);
+  if (command === 'interview-status') {
+    const s = loadState(root), status = interviewStatus(s);
+    return { revision: s.revision, basis: interviewBasis(s), ...status,
+      nodes: s.interview?.plan?.nodes ?? [], summary: s.interview?.summary ?? null };
+  }
   if (command === 'apply') return applyEvent(root, readJson(input));
   if (command === 'run-review') { const adapter = readJson(input); return executeBridge(root, adapter.revision, adapter); }
   if (command === 'quality-template') {

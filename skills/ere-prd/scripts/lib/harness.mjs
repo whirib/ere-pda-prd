@@ -4,6 +4,7 @@ import { hash, need, textValue, idValue, atomicWrite, inside, transaction, loadS
 import { STAGES, check, semanticIssues, sourceBasis, basis, artifactShapeIssues } from './gates.mjs';
 import { packetFor, validateReview } from './review.mjs';
 import { renderDiagram } from './visuals.mjs';
+import { emptyInterview, applyInterviewEvent, interviewIssues, interviewStatus, interviewBasis } from './interview.mjs';
 
 const index = stage => STAGES.indexOf(stage);
 const writeJson = (root, file, value) => atomicWrite(inside(root, file), JSON.stringify(value, null, 2));
@@ -19,7 +20,7 @@ export function initRun(root, { title, host, policy = {} }) {
   need(Number.isInteger(effective.maxReviewCalls) && effective.maxReviewCalls >= effective.maxReviewRounds && effective.maxReviewCalls <= 8, 'POLICY', '评审调用预算必须包含有限失败重试，最多 8 次。');
   need(Number.isInteger(effective.debateContextChars) && effective.debateContextChars >= 1000 && effective.debateContextChars <= 24000, 'POLICY', '讨论上下文预算无效。');
   const state = { schema: 1, title, host, policy: effective, revision: 0, stage: 'intake', createdAt: new Date().toISOString(),
-    sources: {}, artifacts: {}, gates: {}, draft: null, diagrams: [], reviews: [], reviewRequests: [], decisions: [], delivery: null, log: [] };
+    sources: {}, artifacts: {}, gates: {}, interview: emptyInterview(), draft: null, diagrams: [], reviews: [], reviewRequests: [], decisions: [], delivery: null, log: [] };
   // Exclusive create prevents two initializers from overwriting one another.
   fs.writeFileSync(stateFile, JSON.stringify(state, null, 2), { flag: 'wx', mode: 0o600 });
   return state;
@@ -53,11 +54,19 @@ function verifyFiles(root, s, includeDelivery = true) {
 export function inspectRun(root, stage) {
   const s = loadState(root), report = check(s, stage ?? s.stage);
   report.issues.push(...verifyFiles(root, s)); report.ok = report.issues.length === 0;
-  return { ...report, revision: s.revision, stage: stage ?? s.stage, next: STAGES[index(s.stage) + 1] ?? null };
+  const interview = interviewStatus(s);
+  const nextAction = s.stage === 'intake' ? 'read_sources_and_update_intake' : !s.interview?.plan ? 'map_facts_and_decisions' :
+    interview.awaiting.length ? 'await_user_answers' : interview.unresolved.length ? 'investigate_facts_or_ask_frontier' : !interview.confirmed ? 'present_summary_and_wait' : report.ok ? 'advance_current_stage' : 'repair_current_stage';
+  return { ...report, revision: s.revision, stage: stage ?? s.stage, next: report.ok ? STAGES[index(s.stage) + 1] ?? null : null, nextAction,
+    interview: { frontier: interview.frontier.map(n => ({ id: n.id, kind: n.kind, status: n.status })),
+      waitingFor: interview.awaiting.flatMap(r => r.questions.filter(q => !r.answers.some(a => a.decisionId === q.decisionId)).map(q => q.decisionId)),
+      unresolved: interview.unresolved.map(n => n.id), confirmed: interview.confirmed, exploratoryAuthorized: interview.explorationAuthorized } };
 }
 
 function deliver(root, s, draftOnly, target) {
   need(s.draft?.sourceBasis === sourceBasis(s), 'DRAFT_STALE', '不能导出与当前资料不匹配的草稿。');
+  need(s.draft.interviewBasis === interviewBasis(s), 'DRAFT_INTERVIEW_STALE', '草稿与当前事实/决策树不一致；不能复用旧稿或旧采访闸门。');
+  need(s.draft.exploratory ? interviewStatus(s).explorationAuthorized : !interviewIssues(s).length, 'INTERVIEW_BLOCKED', '探索稿需明确用户授权；普通稿需先完成关键决策与共同理解确认。');
   need(verifyFiles(root, s, false).length === 0, 'ASSET_CHANGED', '交付前请修复被修改或缺失的图表。');
   if (!draftOnly) requireStage(s, ['export', 'done']);
   if (!draftOnly) need(s.draft.exploratory !== true, 'EXPLORATORY_DRAFT', '探索草稿须重新完成 specification 并登记正式稿后才可正式交付。');
@@ -108,8 +117,10 @@ export function applyEvent(root, event) {
         need(unit && idValue(unit.id) && !ids.has(unit.id) && textValue(unit.locator) && typeof unit.text === 'string', 'SOURCE_UNIT', '来源单元需唯一 ID、可回定位的位置和抽取文本。'); ids.add(unit.id);
         need(unit.read === false || textValue(unit.text), 'SOURCE_EMPTY', '已读单元必须有实际抽取内容；未读请显式 read:false。');
       }
-      const { hash: ignoredHash, ...sourceData } = src;
-      const normalized = { ...sourceData, hash: hash(sourceData) };
+      need(src.actor === undefined || ['user', 'agent'].includes(src.actor), 'SOURCE_FORMAT', '访谈 actor 必须标明 user 或 agent。');
+      need(src.authority === undefined || ['decision', 'reference'].includes(src.authority), 'SOURCE_FORMAT', '文档需区分决策权材料与参考资料。');
+      const { hash: ignoredHash, registeredRevision: ignoredRevision, ...sourceData } = src;
+      const normalized = { ...sourceData, hash: hash(sourceData), registeredRevision: s.revision + 1 };
       const previous = s.sources[src.id];
       if (previous?.hash !== normalized.hash) {
         if (previous) writeJson(root, `sources/${src.id}-${previous.hash}.json`, previous);
@@ -119,6 +130,10 @@ export function applyEvent(root, event) {
         for (const r of s.reviewRequests.filter(x => x.status === 'pending')) r.status = 'stale';
       }
       result = { sourceId: src.id, sourceHash: normalized.hash };
+    } else if (event.type.startsWith('interview-')) {
+      need(index(s.stage) >= index('discovery') || (s.stage === 'intake' && s.interview?.plan), 'WRONG_STAGE', '先读来源并完成 intake；回答新增来源返工 intake 时可登记已有采访的回答。');
+      result = applyInterviewEvent(s, event);
+      invalidate(s, 'discovery', '事实/决策树、真实回答或共同理解状态改变。');
     } else if (event.type === 'artifact') {
       const { stage, data } = event;
       need(['intake', 'discovery', 'solution', 'specification', 'visuals', 'resolve'].includes(stage) && index(stage) <= index(s.stage), 'ARTIFACT_STAGE', '不能跳过前置阶段直接提交后续产物。');
@@ -131,9 +146,10 @@ export function applyEvent(root, event) {
     } else if (event.type === 'draft') {
       const exploratory = event.exploratory === true && index(s.stage) >= index('discovery');
       need((index(s.stage) >= index('specification') || exploratory) && textValue(event.text) && Array.isArray(event.mapping), 'DRAFT_FORMAT', '正式稿从 specification 登记；方向缺口仍在时可明确 exploratory:true 登记可选路径草稿。');
-      if (s.draft?.hash !== hash(event.text) || hash(s.draft?.mapping) !== hash(event.mapping) || s.draft?.sourceBasis !== sourceBasis(s) || s.draft?.specHash !== hash(s.artifacts.specification ?? null) || s.draft?.exploratory !== exploratory) {
+      need(exploratory ? interviewStatus(s).explorationAuthorized : !interviewIssues(s).length, 'INTERVIEW_BLOCKED', '用户未回答不等于默认同意；先完成关键决策和理解确认。先看探索稿须有明确用户原话授权。');
+      if (s.draft?.hash !== hash(event.text) || hash(s.draft?.mapping) !== hash(event.mapping) || s.draft?.sourceBasis !== sourceBasis(s) || s.draft?.specHash !== hash(s.artifacts.specification ?? null) || s.draft?.interviewBasis !== interviewBasis(s) || s.draft?.exploratory !== exploratory) {
         invalidate(s, 'specification', 'PRD 文字或映射已修改，需要重新验证。');
-        s.draft = { text: event.text, hash: hash(event.text), sourceBasis: sourceBasis(s), specHash: hash(s.artifacts.specification ?? null), mapping: event.mapping, exploratory };
+        s.draft = { text: event.text, hash: hash(event.text), sourceBasis: sourceBasis(s), specHash: hash(s.artifacts.specification ?? null), interviewBasis: interviewBasis(s), mapping: event.mapping, exploratory };
         atomicWrite(inside(root, `drafts/${s.draft.hash}.md`), event.text);
       }
       result = { prdHash: s.draft.hash };
@@ -179,7 +195,7 @@ export function applyEvent(root, event) {
       need(req?.status === 'pending' && textValue(event.reason), 'REVIEW_NOT_PENDING', '只有待执行的请求可以登记失败，且必须有原因。');
       req.status = 'failed'; req.reason = event.reason;
     } else if (event.type === 'decision') {
-      requireStage(s, ['resolve']);
+      requireStage(s, ['review', 'resolve']);
       const d = event.decision;
       need(s.reviews.some(r => r.findings.some(f => f.id === d?.findingId)) && textValue(d.reason), 'UNKNOWN_FINDING', '处置必须对应具体评审意见，并有理由。');
       s.decisions = [...s.decisions.filter(x => x.findingId !== d.findingId), d]; invalidate(s, 'resolve', '评审处置已更新。');

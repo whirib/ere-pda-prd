@@ -1,4 +1,5 @@
 import { hash, textValue, idValue } from './store.mjs';
+import { interviewIssues, interviewStatus, interviewBasis } from './interview.mjs';
 
 export const STAGES = ['intake', 'discovery', 'solution', 'specification', 'visuals', 'review', 'resolve', 'export', 'done'];
 export const CORE = ['user', 'problem', 'goal', 'scope', 'flow', 'constraints'];
@@ -15,10 +16,11 @@ export const RUBRICS = {
 const order = stage => STAGES.indexOf(stage);
 const flat = value => typeof value === 'string' ? value : Array.isArray(value) ? value.map(flat).join('\n') : value && typeof value === 'object' ? Object.values(value).map(flat).join('\n') : String(value ?? '');
 export const sourceBasis = s => hash(Object.values(s.sources).map(x => [x.id, x.version, x.hash]).sort((a, b) => a[0].localeCompare(b[0])));
-export const reviewBasis = s => hash({ prd: s.draft?.hash, sources: sourceBasis(s), specification: hash(s.artifacts.specification ?? null),
+export const reviewBasis = s => hash({ prd: s.draft?.hash, sources: sourceBasis(s), interview: interviewBasis(s), specification: hash(s.artifacts.specification ?? null),
   assets: s.diagrams.filter(x => x.prdHash === s.draft?.hash).map(x => [x.file, x.hash, x.sourceHash, x.caption]).sort((a,b) => a[0].localeCompare(b[0])) });
 export function basis(s, stage = s.stage) {
   return hash({ sources: sourceBasis(s), artifacts: Object.fromEntries(Object.entries(s.artifacts).filter(([k]) => order(k) <= order(stage))),
+    interview: order(stage) >= order('discovery') ? s.interview ?? null : null,
     draft: order(stage) >= order('specification') ? s.draft?.hash : null,
     diagrams: order(stage) >= order('visuals') ? s.diagrams : null,
     reviews: order(stage) >= order('review') ? s.reviews : null,
@@ -71,6 +73,7 @@ export function check(s, stage = s.stage) {
     else refs.forEach(x => claim(x, loc));
   };
   if (!STAGES.includes(stage) || stage === 'done') return { stage, ok: stage === 'done', issues, warnings, basis: basis(s, stage) };
+  if (order(stage) >= order('discovery')) issues.push(...interviewIssues(s));
   if (stage !== 'review' && stage !== 'resolve' && stage !== 'export' && !a) add('NO_ARTIFACT', stage, '本阶段没有产物。', '提交对应阶段的结构化产物。');
 
   if (stage === 'intake' && a) {
@@ -108,13 +111,22 @@ export function check(s, stage = s.stage) {
   }
 
   if (stage === 'discovery' && a) {
+    const decisions = interviewStatus(s).states;
     for (const key of CORE) {
       const value = a.core?.[key];
       if (!value || !['sufficient', 'provisional', 'critical_gap'].includes(value.status)) add('CORE_STATUS', key, '核心维度未完成信息充分性判断。', '结合文档和访谈填写状态及内容。');
       else {
         required(value.summary, key); cited(value.claimIds, key);
-        if (value.status === 'critical_gap') add('CRITICAL_GAP', key, '不同答案将改变核心方向，暂不能锁定方案。', '提出最有价值的一个问题，或给出有依据的分支草稿。');
-        if (value.status === 'provisional') { required(value.validation, `${key}/validation`); warnings.push({ code: 'PROVISIONAL', location: key, message: '可进入草稿，但尚未验证。' }); }
+        if (value.status === 'critical_gap') add('CRITICAL_GAP', key, '不同答案将改变核心方向，暂不能锁定方案。', '按已满足前置的分支提问并等待；用户明确要求时才导出分支探索稿。');
+        if (!Array.isArray(value.decisionIds) || !value.decisionIds.length || value.decisionIds.some(id => !decisions.some(n => n.id === id && n.coreKeys.includes(key)))) add('CORE_DECISION_MAPPING', key, '核心信息未关联事实/决策树，不能只凭作者自评充足。', '关联覆盖该维度的节点，并记录原始依据。');
+        const settled = value.decisionIds?.some(id => decisions.some(n => n.id === id && n.status === 'answered'));
+        const fact = value.claimIds?.some(id => s.artifacts.intake?.claims?.some(c => c.id === id && c.kind === 'fact'));
+        if (value.status === 'sufficient' && !settled && !fact) add('CORE_UNSUPPORTED', key, '仅有模型假设或建议，不能升级为信息足够。', '查证事实或获得对应用户决定。');
+        if (value.status === 'provisional') {
+          required(value.validation, `${key}/validation`);
+          if (!['research', 'implementation', 'decision'].includes(value.uncertaintyType)) add('CORE_UNCERTAINTY_TYPE', key, '需区分证据待研究、实现依赖和用户决策未定。', '明确 uncertaintyType；未决方向不能用研究待验证替代。');
+          warnings.push({ code: 'PROVISIONAL', location: key, message: '仍有待验证证据；不能替代未回答的重要决策。' });
+        }
       }
     }
     required(a.demandAssessment, 'demandAssessment');
@@ -123,6 +135,7 @@ export function check(s, stage = s.stage) {
       if (!['answered', 'open', 'deferred'].includes(q.status)) add('QUESTION_STATUS', q.id, '问题状态无效。', '标记 answered/open/deferred。');
       if ((q.attempts ?? 0) >= 2 && q.status === 'open' && !q.newEvidence) add('INTERVIEW_LOOP', q.id, '重复追问已没有新信息。', '转成明确的假设、验证任务或用户待决项，停止原样追问。');
       if (q.status === 'deferred') { required(q.validation, `${q.id}/validation`); required(q.impact, `${q.id}/impact`); }
+      if (['answered', 'deferred'].includes(q.status) && !decisions.some(n => n.id === (q.decisionId ?? q.id) && n.resolution && n.status === q.status)) add('QUESTION_UNGROUNDED', q.id, '回答或延期没有对应采访账本及真实来源依据。', '通过 interview-resolve 登记用户原话，不能直接修改 artifact 的状态。');
     }
   }
 
@@ -131,6 +144,8 @@ export function check(s, stage = s.stage) {
     if (!Array.isArray(a.inScope) || !a.inScope.length) add('EMPTY_SCOPE', 'inScope', '没有本期范围。', '围绕最小价值闭环收窄。');
     if (!Array.isArray(a.nonGoals) || !a.nonGoals.length) add('NO_BOUNDARY', 'nonGoals', '没有说明本期不做什么。', '明确相邻而易膨胀的范围。');
     required(a.choice, 'choice'); required(a.tradeoff, 'tradeoff');
+    const choice = interviewStatus(s).states.find(n => n.id === a.choiceDecisionId);
+    if (!choice || choice.kind !== 'decision' || choice.status !== 'answered' || choice.value !== a.choice) add('SOLUTION_UNCONFIRMED_CHOICE', 'choiceDecisionId', '推荐方案尚未对应用户或有决策权材料确认的具体选择。', '将推荐作为问题呈现，记录明确选择后再锁定方案；材料已经明确时复用原文。');
     if (!Array.isArray(a.alternatives) || a.alternatives.length < 2) add('NO_ALTERNATIVE', 'alternatives', '尚未比较可行路径。', '比较推荐路径与一个真实可选路径，可包括保持现状/人工验证。');
     for (const option of a.alternatives ?? []) { required(option.description, 'alternative'); required(option.fit, 'alternative/fit'); required(option.costOrRisk, 'alternative/costOrRisk'); }
   }

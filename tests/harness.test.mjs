@@ -12,9 +12,11 @@ import { renderDiagram } from '../skills/ere-prd/scripts/lib/visuals.mjs';
 import { executeBridge } from '../skills/ere-prd/scripts/lib/bridge.mjs';
 import { packetFor, validateReview } from '../skills/ere-prd/scripts/lib/review.mjs';
 import { main } from '../skills/ere-prd/scripts/prd.mjs';
-import { buildToReview, send, advance, prepare, mockResult, raw, intakeArtifact, demonstrationQuality, prd, mapping, graph } from '../examples/fixture.mjs';
+import { buildToReview, setupInterview, send, advance, prepare, mockResult, raw, intakeArtifact, demonstrationQuality, prd, mapping, graph } from '../examples/fixture.mjs';
 
-const tmp = t => { const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ere-prd-test-')); t.after(() => fs.rmSync(root, { recursive: true, force: true })); return root; };
+const testTemp = path.resolve(process.env.ERE_PRD_TEST_TMP ?? os.tmpdir());
+fs.mkdirSync(testTemp, { recursive: true });
+const tmp = t => { const root = fs.mkdtempSync(path.join(testTemp, 'ere-prd-test-')); t.after(() => { assert.equal(path.dirname(path.resolve(root)), testTemp); assert.ok(path.basename(root).startsWith('ere-prd-test-')); fs.rmSync(root, { recursive: true, force: true }); }); return root; };
 const init = root => initRun(root, { title: 'test', host: { runtimeId: 'fixture-host', model: 'fixture-model', authorSessionId: 'fixture-author' } });
 const expectCode = (fn, code) => assert.throws(fn, e => e.code === code);
 const has = (s, stage, code) => assert.ok(check(s, stage).issues.some(x => x.code === code), JSON.stringify(check(s, stage)));
@@ -81,18 +83,20 @@ test('影响核心方向的资料冲突阻止推进', t => {
 test('关键缺口阻止锁方案，暂定信息允许形成有验证计划的草稿', t => {
   const root = tmp(t); buildToReview(root); const s = loadState(root), u = s.artifacts.discovery.core.user;
   u.status = 'critical_gap'; has(s, 'discovery', 'CRITICAL_GAP');
-  u.status = 'provisional'; u.validation = '观察两类角色当前任务，选择首期使用者';
+  u.status = 'provisional'; u.uncertaintyType = 'research'; u.validation = '观察已确定角色的实际使用情况';
   assert.equal(check(s, 'discovery').ok, true); assert.ok(check(s, 'discovery').warnings.some(x => x.code === 'PROVISIONAL'));
 });
 test('没有新证据的重复问题转成待验证任务', t => {
   const root = tmp(t); buildToReview(root); const s = loadState(root);
   s.artifacts.discovery.questions = [{ id: 'Q1', question: '是否跨页面保留输入', materialImpact: '改变恢复行为', attempts: 2, status: 'open' }]; has(s, 'discovery', 'INTERVIEW_LOOP');
-  Object.assign(s.artifacts.discovery.questions[0], { status: 'deferred', validation: '用户确认保留边界', impact: '影响 FR-02' }); assert.equal(check(s, 'discovery').ok, true);
+  Object.assign(s.artifacts.discovery.questions[0], { status: 'deferred', validation: '用户确认保留边界', impact: '影响 FR-02' }); has(s, 'discovery', 'QUESTION_UNGROUNDED');
 });
 test('方向缺口仍在时可交探索草稿，但不能假装进入下一阶段', t => {
   const root = tmp(t); init(root); for (const source of Object.values(raw)) send(root, { type: 'source', source });
   send(root, { type: 'artifact', stage: 'intake', data: intakeArtifact(loadState(root)) }); advance(root);
+  setupInterview(root);
   send(root, { type: 'artifact', stage: 'discovery', data: { core: { user: { status: 'critical_gap', summary: '角色未定', claimIds: ['C-user'] } } } });
+  send(root, { type: 'interview-draft-authorize', reason: '离线用户明确先看探索稿', evidence: [{ sourceId: 'I1', sourceHash: loadState(root).sources.I1.hash, unitId: 'turn1', quote: '若后续发现材料有缺口，先给我列明分支的探索稿。' }] });
   send(root, { type: 'draft', exploratory: true, text: '# 探索草稿\n两种角色方案待定，不能开始实现。', mapping: [] });
   const out = send(root, { type: 'draft-export' }).result; assert.equal(out.status, 'draft'); assert.equal(loadState(root).stage, 'discovery');
   assert.ok(!out.missing.some(x => x.code === 'COMMITMENT_ERODED')); assert.ok(out.pending.includes('resolve'));
@@ -179,6 +183,23 @@ test('复审只带逐意见回复与必要证据，不继承两方完整记忆',
   const p = prepare(root, ['C-guard']); assert.equal(p.mode, 'evidence_review'); assert.equal(p.routedIssues.length, 1); assert.equal(p.evidence.length, 1);
   assert.ok(!JSON.stringify(p).includes(raw.interview.units[0].text));
   expectCode(() => prepare(root), 'REVIEW_PENDING');
+});
+test('隔离未验证时也能回应意见；未回应不能跳到复审，回应不冒充隔离达标', t => {
+  const root = tmp(t); buildToReview(root); const p = prepare(root), result = mockResult(root, p, [finding]);
+  delete result.runtimeReceipt.automaticMemory;
+  send(root, { type: 'review-result', result });
+  expectCode(() => prepare(root), 'REVIEW_RESPONSE_MISSING');
+  send(root, { type: 'decision', decision: { findingId: 'R1-F1', action: 'rebutted', reason: '边界来自约束，仍需独立复审', claimIds: ['C-guard'] } });
+  assert.equal(loadState(root).stage, 'review');has(loadState(root), 'review', 'ISOLATION_UNVERIFIED');
+  expectCode(() => advance(root), 'GATE_BLOCKED');
+  const next = prepare(root, ['C-guard']);assert.equal(next.routedIssues.length, 1);assert.equal(next.evidence.length, 1);
+});
+test('复审不能携带尚未落到 PRD 的已接受回复或无依据的反驳', t => {
+  const root = tmp(t); reviewed(root, [finding]);
+  send(root, { type: 'decision', decision: { findingId: 'R1-F1', action: 'accepted', reason: '计划修改，但还没改', quote: '不存在的新内容' } });
+  expectCode(() => prepare(root), 'FIX_NOT_IN_PRD');
+  send(root, { type: 'decision', decision: { findingId: 'R1-F1', action: 'rebutted', reason: '作者自行判断', claimIds: ['missing'] } });
+  expectCode(() => prepare(root), 'UNSUPPORTED_REBUTTAL');
 });
 test('轮数和失败调用都有上限，不能递归无限重试', t => {
   const root = tmp(t); reviewed(root);
