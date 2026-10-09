@@ -1,0 +1,14 @@
+flowchart TD
+  fill["填写需求"]
+  submit["提交申请"]
+  checkInfo{"信息完整"}
+  received["进入待处理"]
+  fix["返回补充"]
+  retry["保存失败"]
+  fill --> submit
+  submit --> checkInfo
+  checkInfo -->|"完整且保存成功"| received
+  checkInfo -->|"不完整"| fix
+  fix -->|"补齐后"| fill
+  checkInfo -->|"完整但保存失败"| retry
+  retry -->|"保留输入重试"| submit
